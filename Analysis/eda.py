@@ -209,9 +209,43 @@ def run_all_steps(steps_to_run: Iterable[bool]) -> pd.DataFrame:
     for feature in cols_in_train_but_not_in_test:
         df[feature] = 0
 
-    # lazy_predict, classic_ml, tuned_ml, basic_NN
-    run_flags = [True, False, False, False]
-    combined_results = run_ML(df_train, df_test, TARGET, run_flags)
+    # try adding features incrementally to see how this affects performance
+    # could start with all feat and remove - this way might miss interactions
+    # but this would take a long time
+    # really should use a validation set for this
+    # and a test set for final assessment
+    features = list(df_train.columns)
+    features.remove(TARGET)
+    feats_being_used = [TARGET]
+    best_f1 = 0
+
+    print(len(features))
+
+    for feature in features:
+        feats_being_used.append(feature)
+
+        df_train_ML = df_train[feats_being_used]
+        df_test_ML = df_test[feats_being_used]
+
+        # lazy_predict, classic_ml, tuned_ml, basic_NN
+        run_flags = [False, True, False, False]
+        combined_results = run_ML(df_train_ML, df_test_ML, TARGET, run_flags)
+
+        # get performance - if it has improved then keep the feature
+        # otherwise delete the feature from the used list
+        latest_f1 = combined_results['F1 Score'].mean()
+
+        print(f'F1 Score is : {latest_f1}')
+        print(f'Best F1 Score is : {best_f1}')
+
+        if latest_f1 > best_f1:
+            best_f1 = latest_f1
+        else:
+            feats_being_used.remove(feature)
+
+    feats_being_used.remove(TARGET)
+    combined_results["Best Features"] = str(feats_being_used)
+    combined_results["NFeatures"] = len(feats_being_used) - 1
 
     combined_results["Removed Outliers"] = remove_outliers_flag
     combined_results["Removed Cross Corr"] = remove_cross_corr_feat_flag

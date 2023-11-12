@@ -14,14 +14,13 @@ from typing import Tuple
 
 from ml_parameters import model_to_params_dict
 
-MODELS = [DecisionTreeClassifier(random_state=42),
-          LogisticRegression(random_state=42)]
+MODELS = [DecisionTreeClassifier(random_state=42)]
 
 
 def hypertune_model(model, X_train: pd.DataFrame, y_train: pd.DataFrame,
                     explore_params=False) -> Tuple[str]:
 
-    """Accepts a basic Model. Retreieves parameter grid for that model.
+    """Accepts a basic Model. Retrieves parameter grid for that model.
     Creates training pipeline. Tunes model based on desired metric.
     Returns best model."""
 
