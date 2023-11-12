@@ -16,7 +16,7 @@ def create_correlation_matrix(data: pd.DataFrame, target=None):
         corrmat.drop(columns=[target], inplace=True)
         sns.heatmap(corrmat, xticklabels=corrmat.columns, cmap="Spectral_r")
     else:
-        sns.heatmap(corrmat, cbar=True, annot=True, square=True, fmt='.2f',
+        sns.heatmap(corrmat, cbar=True, annot=False, square=True, fmt='.2f',
                     annot_kws={'size': 8}, yticklabels=data.columns,
                     xticklabels=data.columns, cmap="Spectral_r")
 

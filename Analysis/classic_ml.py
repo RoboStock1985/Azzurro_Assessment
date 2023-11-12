@@ -3,9 +3,9 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 
 from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.metrics import accuracy_score
@@ -14,10 +14,8 @@ from typing import Tuple
 
 from ml_parameters import model_to_params_dict
 
-# MODELS = [SGDClassifier(random_state=42, verbose=1),
-#           DecisionTreeClassifier(random_state=42)]
-
-MODELS = [DecisionTreeClassifier(random_state=42)]
+MODELS = [DecisionTreeClassifier(random_state=42),
+          LogisticRegression(random_state=42)]
 
 
 def hypertune_model(model, X_train: pd.DataFrame, y_train: pd.DataFrame,
@@ -27,8 +25,10 @@ def hypertune_model(model, X_train: pd.DataFrame, y_train: pd.DataFrame,
     Creates training pipeline. Tunes model based on desired metric.
     Returns best model."""
 
-    verbosity_level = 1
-    num_jobs = 20
+    verbosity_level = 3
+
+    # number of concurrent jobs to run
+    num_jobs = 5
 
     if explore_params:
         num_cross_validations = 5
@@ -78,7 +78,7 @@ def establish_parameters_for_pipeline(model, explore_params: bool) -> dict:
     # create model training pipeline - includes preprocessing
     pipe = Pipeline([('scale', StandardScaler()),
                     ('pca', PCA()),
-                    ('model', model)])
+                    ('model', model)], verbose=3)
 
     # associate parameters with each pipeline step
     new_params_grid = {}
@@ -91,7 +91,7 @@ def establish_parameters_for_pipeline(model, explore_params: bool) -> dict:
         # new_params_grid["pca__n_components"] = n_components
         new_params_grid["pca"] = [None]
         for n_component in n_components:
-            new_params_grid["pca"].append(PCA(n_component))            
+            new_params_grid["pca"].append(PCA(n_component))
         # add in param to toggle scaling
         new_params_grid["scale"] = [None, StandardScaler()]
     else:

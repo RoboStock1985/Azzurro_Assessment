@@ -3,12 +3,13 @@ import pandas as pd
 
 
 def remove_cross_correlated_columns(df: pd.DataFrame,
-                                    tolerance=0.90) -> pd.DataFrame:
+                                    target: str,
+                                    tolerance=0.85, ) -> pd.DataFrame:
 
     """Checks to see which columns have a high degree of cross-correlation
     and removes one of them."""
 
-    corr_matrix = df.corr().abs()
+    corr_matrix = df.drop(target, axis=1).corr().abs()
 
     # Select upper triangle of correlation matrix
     upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape),

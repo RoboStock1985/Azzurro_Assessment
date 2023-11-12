@@ -10,6 +10,7 @@ from balance_data import oversample_balance_data
 from date_utilities import create_month_dummies_from_date
 from data_cleaning import remove_cross_correlated_columns, remove_outliers
 from data_cleaning import drop_cols_which_have_only_one_value
+from plotting import create_correlation_matrix, create_boxplot
 
 import itertools
 
@@ -125,7 +126,7 @@ def examine_and_clean_data(df: pd.DataFrame) -> pd.DataFrame:
     # create corr mat for only variables of interest
     # create_correlation_matrix(df, target=TARGET)
 
-    # can create full matrix but it is very busy
+    # # can create full matrix but it is very busy
     # create_correlation_matrix(df)
 
     print('Finished Cleaning & Prepping Data.')
@@ -185,7 +186,12 @@ def run_all_steps(steps_to_run: Iterable[bool]) -> pd.DataFrame:
     # can alter tolerance level if it is too strict - would depend
     # on improving model performance
     if remove_cross_corr_feat_flag:
-        df_train = remove_cross_correlated_columns(df_train)
+        df_train = remove_cross_correlated_columns(df_train, TARGET)
+
+    # create corr mat for only variables of interest
+    # create_correlation_matrix(df_train, target=TARGET)
+    # can create full matrix but it is very busy
+    # create_correlation_matrix(df_train)
 
     # address class imbalance - only do for training data
     # could also try undersampling - which would use much less data but is
@@ -210,7 +216,7 @@ def run_all_steps(steps_to_run: Iterable[bool]) -> pd.DataFrame:
         df[feature] = 0
 
     # lazy_predict, classic_ml, tuned_ml, basic_NN
-    run_flags = [False, True, False, False]
+    run_flags = [False, False, False, True]
     combined_results = run_ML(df_train, df_test, TARGET, run_flags)
 
     combined_results["Removed Outliers"] = remove_outliers_flag
@@ -226,7 +232,7 @@ if __name__ == '__main__':
                                                               repeat=3))
 
     # apparent best configuration for decision tree from lazy predict
-    # all_combinations_of_steps_to_run = [[False, True, True]]
+    # all_combinations_of_steps_to_run = [[False, False, False]]
 
     all_results = []
     for steps in all_combinations_of_steps_to_run:

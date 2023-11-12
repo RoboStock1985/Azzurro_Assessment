@@ -65,7 +65,8 @@ def run_basic_NN(df_train: pd.DataFrame, df_test: pd.DataFrame, target: str):
     # split test into test & eval as Keras can use this
     X_eval, X_test, y_eval, y_test = train_test_split(x_test, y_test,
                                                       test_size=0.5,
-                                                      random_state=42)
+                                                      random_state=42,
+                                                      stratify=y_test)
 
     prob_limit = 0.5
     y_pred = fit_keras_model(X_train, y_train, X_eval,

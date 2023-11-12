@@ -35,9 +35,18 @@ log_reg_param_grid = {'penalty': ['l1', 'l2', 'elasticnet', None],
                       'C': [0.1, 1, 2]}
 
 sgd_param_grid = {'loss': ['hinge', 'log_loss', 'modified_huber'],
-                  'penalty': ['l2', 'l1', 'elasticnet', None]}
+                  'penalty': ['l2', 'l1', 'elasticnet', None],
+                  'tol': [0.001, 0.0001, 0.00001]}
 
-decision_tree_grid = {}
+# decision_tree_grid = {'criterion': ['gini', 'log_loss'],
+#                       'max_depth': [2, 5, 10],
+#                       'min_samples_split': [2, 5, 10],
+#                       'min_samples_leaf': [1, 5, 10],
+#                       'min_weight_fraction_leaf': [0,  0.5, 1],
+#                       'max_features': ['auto']}
+
+decision_tree_grid = {'criterion': ['gini'],
+                      'max_depth': [None, 2, 10]}
 
 model_to_params_dict = {'XGBClassifier': xgb_parameters_grid,
                         "RandomForestClassifier": rf_param_grid,
