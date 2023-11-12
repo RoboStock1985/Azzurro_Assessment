@@ -147,12 +147,6 @@ def run_all_steps(steps_to_run: Iterable[bool]) -> pd.DataFrame:
 
     # save a chopped down version to investigate -
     # as using entire dataset is very slow
-    # create temp 1% dataset
-    # test_df = df.sample(8000)
-    # test_df.to_csv(Path('./Data/TEST_DATA.csv'), index=False)
-
-    # save a chopped down version to investigate -
-    # as using entire dataset is very slow
     # create temp 20% dataset
     # test_df = df.sample(170000)
     # test_df.to_csv(Path('./Data/TEST_DATA.csv'), index=False)
@@ -216,7 +210,7 @@ def run_all_steps(steps_to_run: Iterable[bool]) -> pd.DataFrame:
         df[feature] = 0
 
     # lazy_predict, classic_ml, tuned_ml, basic_NN
-    run_flags = [False, False, False, True]
+    run_flags = [True, False, False, False]
     combined_results = run_ML(df_train, df_test, TARGET, run_flags)
 
     combined_results["Removed Outliers"] = remove_outliers_flag
@@ -228,6 +222,8 @@ def run_all_steps(steps_to_run: Iterable[bool]) -> pd.DataFrame:
 
 if __name__ == '__main__':
 
+    # constructs list of lists of combinations of run parameters for
+    # remove_outliers_flag, remove_cross_corr_feat_flag, balance_data_flag
     all_combinations_of_steps_to_run = list(itertools.product([True, False],
                                                               repeat=3))
 
@@ -239,7 +235,7 @@ if __name__ == '__main__':
         results = run_all_steps(steps)
         all_results.append(results)
 
-    # save results to file
+    # save all results to file
     results_path = Path("./Data/ML_Results.csv")
     all_results = pd.concat(all_results)
     all_results.to_csv(results_path, index=False)
