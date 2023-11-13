@@ -86,7 +86,7 @@ def establish_parameters_for_pipeline(model, explore_params: bool) -> dict:
 
     if explore_params:
         # add preprocessing params
-        n_components = [25, 100]
+        n_components = [5, 10]
         # new_params_grid["pca__n_components"] = n_components
         new_params_grid["pca"] = [None]
         for n_component in n_components:
@@ -144,6 +144,9 @@ def run_basic_ML(df_train: pd.DataFrame, df_test: pd.DataFrame, target: str,
     results = []
     for model in MODELS:
 
+        # incremental feature adding/subtraction should probably go here
+        # rather than in main
+
         model_name = type(model).__name__
         print(f"Model: {model_name}")
 
@@ -157,7 +160,7 @@ def run_basic_ML(df_train: pd.DataFrame, df_test: pd.DataFrame, target: str,
                         'Accuracy': accuracy, 'Params': str(best_params)}
         results.append(results_dict)
 
-        # save model and example input data
+        # TODO - save model and example input data
 
     results_columns = results_dict.keys()
     results_df = pd.DataFrame(results, columns=results_columns)

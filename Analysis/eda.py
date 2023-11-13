@@ -228,7 +228,7 @@ def run_all_steps(steps_to_run: Iterable[bool]) -> pd.DataFrame:
         df_test_ML = df_test[feats_being_used]
 
         # lazy_predict, classic_ml, tuned_ml, basic_NN
-        run_flags = [False, True, False, False]
+        run_flags = [False, False, True, False]
         combined_results = run_ML(df_train_ML, df_test_ML, TARGET, run_flags)
 
         # get performance - if it has improved then keep the feature
@@ -262,7 +262,7 @@ if __name__ == '__main__':
                                                               repeat=3))
 
     # apparent best configuration for decision tree from lazy predict
-    # all_combinations_of_steps_to_run = [[False, False, False]]
+    all_combinations_of_steps_to_run = [[False, False, False]]
 
     all_results = []
     for steps in all_combinations_of_steps_to_run:
