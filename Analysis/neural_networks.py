@@ -28,8 +28,11 @@ def fit_keras_model(X_train: pd.DataFrame, y_train: pd.DataFrame,
 
     print("Compiling Keras Model...")
 
+    # model.compile(loss='binary_crossentropy', optimizer='adam',
+    #               metrics=tf.keras.metrics.Precision())
+
     model.compile(loss='binary_crossentropy', optimizer='adam',
-                  metrics=tf.keras.metrics.Precision())
+                  metrics=tf.keras.metrics.F1Score())
 
     print("Fitting Keras Model...")
 
@@ -38,7 +41,7 @@ def fit_keras_model(X_train: pd.DataFrame, y_train: pd.DataFrame,
     X_eval = np.asarray(X_eval).astype('float32')
     y_eval = np.asarray(y_eval).astype('float32')
 
-    n_epochs = 50
+    n_epochs = 100
     batch_size = 10
     verbosity_level = 1
     model.fit(X_train, y_train, epochs=n_epochs,
@@ -72,13 +75,14 @@ def run_basic_NN(df_train: pd.DataFrame, df_test: pd.DataFrame, target: str):
     y_pred = fit_keras_model(X_train, y_train, X_eval,
                              y_eval).predict((X_test) > prob_limit).astype(int)
 
-    f1, recall, precision, accuracy = basic_metrics(y_test, y_pred)
+    f1, recall, precision, accuracy, auc_score = basic_metrics(y_test, y_pred)
     results = []
     results_dict = {'Model': "Keras", 'F1 Score': f1,
                     'Precision': precision, 'Recall': recall,
-                    'Accuracy': accuracy, 'Params': 'Default'}
-    results.append(results_dict)
+                    'Accuracy': accuracy, 'AUC Score': auc_score,
+                    'Params': 'Default'}
 
+    results.append(results_dict)
     results_columns = results_dict.keys()
     results_df = pd.DataFrame(results, columns=results_columns)
 

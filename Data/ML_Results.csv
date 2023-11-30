@@ -1,0 +1,2 @@
+Model,F1 Score,Precision,Recall,Accuracy,AUC Score,Params,Type,Removed Outliers,Removed Cross Corr,Balanced Data,Balanced Score
+RandomForestClassifier,0.8400305501490551,0.7745922122767959,0.917545748116254,0.7503604452219381,0.624901146485612,"{'scale': StandardScaler(), 'pca': None, 'model__n_estimators': 100, 'model__min_samples_split': 40, 'model__min_samples_leaf': 3, 'model__max_features': 'sqrt', 'model__max_depth': 55, 'model__criterion': 'gini'}",Tuned,False,False,True,0.7324658483173336

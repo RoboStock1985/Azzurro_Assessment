@@ -1,37 +1,23 @@
-import datetime
 import pandas as pd
 
 
-def get_month_name_from_num(month_num: int) -> str:
+def create_dt_columns(df: pd.DataFrame) -> pd.DataFrame:
 
-    """Determines the short name of a month from an int and returns."""
+    """Uses date columns to add dt features for month,
+    weekday and day in month. Fills NaNs."""
 
-    datetime_object = datetime.datetime.strptime(str(month_num), "%m")
-    month_name = datetime_object.strftime("%b")
+    date_cols = df.select_dtypes(include=['datetime64[ns]']).columns
 
-    return month_name
+    for col in date_cols:
+        df[col + '_MONTH'] = df[col].dt.month
+        df[col + '_WEEKDAY'] = df[col].dt.weekday
+        df[col + '_DAY_IN_MONTH'] = df[col].dt.day
 
-
-def create_month_dummies_from_date(df: pd.DataFrame,
-                                   col_name: str,
-                                   new_col_name: str) -> pd.DataFrame:
-
-    """Converts a string date column to Datetime.
-    Extracts the month of that date.
-    Creates Dummy Variables using the month column."""
-
-    df[new_col_name] = pd.to_datetime(df[col_name])
-
-    # create categorical columns which represent the month for these
-    # date is not much use in an ML model
-    
-    df[new_col_name] = df[new_col_name].dt.month
-    df[new_col_name] = df[new_col_name].apply(get_month_name_from_num)
-
-    dummy_cols = [new_col_name]
-    df = pd.get_dummies(df, prefix=dummy_cols, columns=dummy_cols)
-
-    if col_name != new_col_name:
-        df.drop(columns=[col_name], inplace=True)
+        df[col + '_MONTH'].fillna(df[col + '_MONTH'].mode()[0],
+                                  inplace=True)
+        df[col + '_WEEKDAY'].fillna(df[col + '_WEEKDAY'].mode()[0],
+                                    inplace=True)
+        df[col + '_DAY_IN_MONTH'].fillna(df[col + '_DAY_IN_MONTH'].mode()[0],
+                                         inplace=True)
 
     return df

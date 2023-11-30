@@ -6,6 +6,7 @@ from classic_ml import run_basic_ML
 from neural_networks import run_basic_NN
 
 from typing import Iterable
+from matplotlib import pyplot as plt
 
 
 def get_lazy_results(df_train: pd.DataFrame, df_test: pd.DataFrame,
@@ -90,3 +91,91 @@ def run_ML(df_train: pd.DataFrame, df_test: pd.DataFrame, TARGET: str,
     combined_ml_results = pd.concat(results_to_combine)
 
     return combined_ml_results
+
+
+def feature_selection(df_train: pd.DataFrame, df_test: pd.DataFrame,
+                      target: str, run_flags: Iterable,
+                      max_features=None) -> pd.DataFrame:
+
+    """Uses Forward Feature Selection to iteratively investigate performance.
+    Records numerous metrics."""
+
+    # really should use a validation set for this
+    # and a test set for final assessment
+    # ok as will use OOT set for final testing
+    features = list(df_train.columns)
+    features.remove(target)
+    feats_being_used = [target]
+    best_auc = 0
+    print(len(features))
+
+    # shuffle dataframe to illustrate
+    # that order of features does not impact
+    # random.shuffle(features)
+
+    # organise so feat order is the same every time
+    features.sort()
+
+    if max_features:
+        features = features[:max_features]
+
+    model_performance_results = []
+    for feat_num, feature in enumerate(features):
+
+        print(f"Now adding feature {feat_num} of {len(features)}.")
+
+        feats_being_used.append(feature)
+
+        df_train_ML = df_train[feats_being_used]
+        df_test_ML = df_test[feats_being_used]
+
+        combined_results = run_ML(df_train_ML, df_test_ML,
+                                  target, run_flags)
+
+        # get performance - if it has improved then keep the feature
+        # otherwise delete the feature from the used list
+
+        # record metrics
+        latest_f1 = combined_results['F1 Score'].mean()
+        latest_precision = combined_results['Precision'].mean()
+        latest_recall = combined_results['Recall'].mean()
+        latest_accuracy = combined_results['Accuracy'].mean()
+        latest_auc = combined_results['AUC Score'].mean()
+
+        model_performance = {"NFeatures": feat_num,
+                             "F1 Score": latest_f1,
+                             "Recall": latest_recall,
+                             "Precision": latest_precision,
+                             "Accuracy": latest_accuracy,
+                             "AUC Score": latest_auc}
+
+        model_performance_results.append(model_performance)
+
+        print(f'AUC Score is : {latest_auc}')
+        print(f'Best AUC Score is : {best_auc}')
+
+        if latest_auc > best_auc:
+            best_auc = latest_auc
+        else:
+            feats_being_used.remove(feature)
+
+    feat_sel_res_df = pd.DataFrame(model_performance_results,
+                                   columns=["NFeatures",
+                                            "F1 Score",
+                                            "Recall",
+                                            "Precision",
+                                            "Accuracy",
+                                            "AUC Score"])
+    print(feat_sel_res_df)
+    feat_sel_res_df.to_csv("./Data/FeatureSelectionResults.csv",
+                           index=False)
+
+    for metric in ["F1 Score", "AUC Score"]:
+        feat_sel_res_df.plot.scatter(x="NFeatures", y=metric)
+        plt.savefig(f'./Data/FeatureSelectionPlot_{metric}.png')
+
+    feats_being_used.remove(target)
+    combined_results["Best Features"] = str(feats_being_used)
+    combined_results["NFeatures"] = len(feats_being_used) - 1
+
+    return combined_results

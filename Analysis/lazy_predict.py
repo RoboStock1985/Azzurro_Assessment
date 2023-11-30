@@ -4,13 +4,13 @@ import pandas as pd
 
 from lazypredict import Supervised
 from sklearn.metrics import precision_score, recall_score, f1_score
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, roc_auc_score
 
 # these classifiers can sometimes hang and halt the training process - remove
-Supervised.removed_classifiers.append("NuSVC")
-Supervised.CLASSIFIERS.remove(("NuSVC", sklearn.svm.NuSVC))
-Supervised.removed_classifiers.append("SVC")
-Supervised.CLASSIFIERS.remove(("SVC", sklearn.svm.SVC))
+# Supervised.removed_classifiers.append("NuSVC")
+# Supervised.CLASSIFIERS.remove(("NuSVC", sklearn.svm.NuSVC))
+# Supervised.removed_classifiers.append("SVC")
+# Supervised.CLASSIFIERS.remove(("SVC", sklearn.svm.SVC))
 LazyClassifier = Supervised.LazyClassifier
 
 
@@ -43,14 +43,15 @@ def lazy_predict(train_data: pd.DataFrame, test_data: pd.DataFrame,
         recall = recall_score(y_test, predictions[classifier])
         f1 = f1_score(y_test, predictions[classifier])
         accuracy = accuracy_score(y_test, predictions[classifier])
+        roc_auc = roc_auc_score(y_test, predictions[classifier])
 
         results_dict = {'Model': classifier, 'F1 Score': f1,
                         'Precision': precision, 'Recall': recall,
-                        'Accuracy': accuracy, 'Params': 'Default'}
+                        'Accuracy': accuracy, 'AUC Score': roc_auc,
+                        'Params': 'Default'}
         results.append(results_dict)
 
-    results_df = pd.DataFrame(results, columns=['Model', 'F1 Score',
-                                                'Precision', 'Recall',
-                                                'Accuracy'])
+    results_columns = results_dict.keys()
+    results_df = pd.DataFrame(results, columns=results_columns)
 
     return results_df

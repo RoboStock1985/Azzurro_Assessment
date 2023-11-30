@@ -4,17 +4,35 @@ from sklearn.pipeline import Pipeline
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import RandomizedSearchCV
+
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 
 from sklearn.metrics import precision_score, recall_score, f1_score
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, roc_auc_score
 
 from typing import Tuple
+import pickle
 
 from ml_parameters import model_to_params_dict
 
-MODELS = [DecisionTreeClassifier(random_state=42)]
+from plotting import AUC_PLOT
+
+# MODELS = [RandomForestClassifier(random_state=42),
+#           GradientBoostingClassifier(random_state=42),
+#           AdaBoostClassifier(random_state=42),
+#           CalibratedClassifierCV(),
+#           KNeighborsClassifier(),
+#           LogisticRegression(random_state=42)]
+
+MODELS = [RandomForestClassifier(random_state=42)]
 
 
 def hypertune_model(model, X_train: pd.DataFrame, y_train: pd.DataFrame,
@@ -27,7 +45,7 @@ def hypertune_model(model, X_train: pd.DataFrame, y_train: pd.DataFrame,
     verbosity_level = 3
 
     # number of concurrent jobs to run
-    num_jobs = 5
+    num_jobs = 10
 
     if explore_params:
         num_cross_validations = 5
@@ -40,10 +58,11 @@ def hypertune_model(model, X_train: pd.DataFrame, y_train: pd.DataFrame,
     # set up RandomisedSearchCV Object
     optimal_params = RandomizedSearchCV(estimator=pipe,
                                         param_distributions=new_params_grid,
-                                        scoring="f1",
+                                        scoring="roc_auc",
                                         verbose=verbosity_level,
                                         n_jobs=num_jobs,
-                                        cv=num_cross_validations)
+                                        cv=num_cross_validations,
+                                        n_iter=10)
 
     optimal_params.fit(X_train, y_train)
 
@@ -86,7 +105,7 @@ def establish_parameters_for_pipeline(model, explore_params: bool) -> dict:
 
     if explore_params:
         # add preprocessing params
-        n_components = [5, 10]
+        n_components = [10]
         # new_params_grid["pca__n_components"] = n_components
         new_params_grid["pca"] = [None]
         for n_component in n_components:
@@ -109,16 +128,18 @@ def basic_metrics(y_test, y_pred,
     precision = precision_score(y_test, y_pred)
     recall = recall_score(y_test, y_pred)
     accuracy = accuracy_score(y_test, y_pred)
+    roc_auc = roc_auc_score(y_test, y_pred)
 
     if verbose:
         print("-------------------------------------------------")
         print('Precision: %.3f' % precision)
         print('Recall: %.3f' % recall)
         print('F1: %.3f' % f1)
-        print('Accuracy: %.3f' % accuracy(y_test, y_pred))
+        print('Accuracy: %.3f' % accuracy)
+        print('ROC AUC: %.3f' % roc_auc)
         print("-------------------------------------------------")
 
-    return f1, recall, precision, accuracy
+    return f1, recall, precision, accuracy, roc_auc
 
 
 def run_basic_ML(df_train: pd.DataFrame, df_test: pd.DataFrame, target: str,
@@ -153,11 +174,20 @@ def run_basic_ML(df_train: pd.DataFrame, df_test: pd.DataFrame, target: str,
         fitted_model, best_params = hypertune_model(model, X_train, y_train,
                                                     explore_params=tune)
 
+        # save model
+        filename = "./Data/Models/finalized_model.pkl"
+        pickle.dump(fitted_model, open(filename, 'wb'))
+
         y_pred = fitted_model.predict(x_test)
-        f1, recall, precision, accuracy = basic_metrics(y_test, y_pred)
+        f1, recall, precision, accuracy, roc_auc \
+            = basic_metrics(y_test, y_pred)
+
+        AUC_PLOT(x_test, y_test, fitted_model)
+
         results_dict = {'Model': model_name, 'F1 Score': f1,
                         'Precision': precision, 'Recall': recall,
-                        'Accuracy': accuracy, 'Params': str(best_params)}
+                        'Accuracy': accuracy, 'AUC Score': roc_auc,
+                        'Params': str(best_params)}
         results.append(results_dict)
 
         # TODO - save model and example input data

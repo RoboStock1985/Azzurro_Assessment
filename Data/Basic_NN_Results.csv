@@ -1,0 +1,2 @@
+Model,F1 Score,Precision,Recall,Accuracy,AUC Score,Params,Type
+Keras,0.0,0.0,0.0,0.28565936178392926,0.5,Default,Neural Network
